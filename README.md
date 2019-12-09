@@ -3,7 +3,7 @@
 ## About
 Informer (TGInformer) is a bot library that allows you to masquerade as multiple REAL users on telegram and log detailed information about specific keywords you set to the database or to your own private telegram channel. 
 
-This is a functioning proof-of-concept project with known bugs. I am not publically actively updating this as I am commercially developing this privately. Feel free to fork, share and drop me a line.
+This is a functioning proof-of-concept project with known bugs. I am not publically actively updating this as I may or may not be commercially developing this privately. Feel free to fork, share and drop me a line! 
 
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/4.png)
 
@@ -153,21 +153,21 @@ The bot is built on top of the Telethon Python SDK (https://docs.telethon.dev/en
 
 A few things to note and gotchas encountered in building this proof of concept:
 
-	1. **Rate Limiting**
-	Telegram does intense rate limiting which will throw FloodWaitErrors. 
-	In my research it seems like no one knows the algorithm for this but 
-	you want your back off waits to scale in response because when you 
-	violate and exceed the unknown rate limit, the waits become 
-	exponential. I’ve found a happy medium with my approach to waiting.
+1. **Rate Limiting**
+Telegram does intense rate limiting which will throw FloodWaitErrors. 
+In my research it seems like no one knows the algorithm for this but 
+you want your back off waits to scale in response because when you 
+violate and exceed the unknown rate limit, the waits become 
+exponential. I’ve found a happy medium with my approach to waiting.
 
-	FloodWaitErrors can occur when you are submitting too many requests 
-	to the API whether it is querying users information or joining  too many 
-	channels too fast
+FloodWaitErrors can occur when you are submitting too many requests 
+to the API whether it is querying users information or joining  too many 
+channels too fast
 
-	2. **Telethon Sessions**
-	Telethon will create a session file. You can set the name of the session 
-	file when you instantiate the Telethon client: 
-	`TelegramClient(<session_file_name>, <api_user_id>, <api_user_hash>)`
+2. **Telethon Sessions**
+Telethon will create a session file. You can set the name of the session 
+file when you instantiate the Telethon client: 
+`TelegramClient(<session_file_name>, <api_user_id>, <api_user_hash>)`
 
 	This file happens to be a sqlite database which you can connect to. It 	
 	acts like a cache and stores historical data as well as your session 
