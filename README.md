@@ -47,35 +47,12 @@ This is a functioning proof-of-concept project with known bugs. Feel free to for
 * Uses REAL accounts avoiding bot detection, **THIS IS NOT A TELEGRAM BOT** but a real automated user account. This is an important distinction because the official bot API is limited and bots are often restricted in public channels.
 
 
-## Scaling Telegram accounts
-Figuring out how to scale accounts was a bit of a nightmare as I needed an automated process. Telegram requires you use a real phone number that can recieve texts from a shortcode.
-
-Unfortunately services with APIs like Twilio are prohibited from receiving SMS from shortcodes in the US, Canada and UK https://support.twilio.com/hc/en-us/articles/223181668-Can-Twilio-numbers-receive-SMS-from-a-short-code- for fraud purposes. This would’ve been ideal, bahumbug.
-
-A whole evening was wasted on this endeavor until I remebered a great app I used in the past: Burner (https://www.burnerapp.com/)  — which coincidentally does have an API (https://developer.burnerapp.com/api-documentation/incoming-webhooks/).  Meaning you can dynamically generate numbers, instantiate a new account and authenticate it all via Telegram’s client SDK in Python (Telethon: https://docs.telethon.dev/en/latest/)
-
-The best part is Burner numbers are free for 14 days. Telegram accounts connected via client API need only login once and permanently persist sessions. I have not integrated with the Burner API, but the process is straight forward.
-
-
-## Todo
-* Create user interface dashboard for bot management
-	* Create new accounts
-	* Add / remove channels
-	* Add / remove keywords to monitor
-	* View notifications 
-	* Recieve web push notifications
-* Automatically poll the database to update the keywords to monitor in memory
-* Automate creation of phone numbers via Burner API and authcode process
-
-
-## Known Bugs
-* Currently a channel must have already been joined in order to begin monitoring of keywords. It is likely you will need to run the `bot.py` twice, once to let it join channels and another time to monitor them. I’m aware of this glaring butg and will fix it in the next revision.
-
 ## Requirements
 ### OS / Infrastructure
 * Python 3+
 * Docker (optional)
 * Telegram (Desktop, Web or Mobile download: https://www.telegram.org/)
+* Burner app
 
 ### Python packages
 * Jinja2 (2.10.3)
@@ -148,6 +125,17 @@ You will need to provide the API ID you generated from the instructions below as
 7. Since you are logging in with Telethon it will ask you for your authcode in the terminal. This was  sent via Telegram message or SMS. Provide this and it will save your session credentials in the session file mentioned below. You will no longer need to authenticate so long as you have the session file saved.
 
 Sessions are saved in the `session/` folder as `<telegram_phone_number>.session`
+
+
+## Scaling Telegram accounts
+Figuring out how to scale accounts was a bit of a nightmare as I needed an automated process. Telegram requires you use a real phone number that can recieve texts from a shortcode.
+
+Unfortunately services with APIs like Twilio are prohibited from receiving SMS from shortcodes in the US, Canada and UK https://support.twilio.com/hc/en-us/articles/223181668-Can-Twilio-numbers-receive-SMS-from-a-short-code- for fraud purposes. This would’ve been ideal, bahumbug.
+
+A whole evening was wasted on this endeavor until I remebered a great app I used in the past: Burner (https://www.burnerapp.com/)  — which coincidentally does have an API (https://developer.burnerapp.com/api-documentation/incoming-webhooks/).  Meaning you can dynamically generate numbers, instantiate a new account and authenticate it all via Telegram’s client SDK in Python (Telethon: https://docs.telethon.dev/en/latest/)
+
+The best part is Burner numbers are free for 14 days. Telegram accounts connected via client API need only login once and permanently persist sessions. I have not integrated with the Burner API, but the process is straight forward.
+
 
 ### Telethon SDK
 The bot is built on top of the Telethon Python SDK (https://docs.telethon.dev/en/latest/)
@@ -239,6 +227,21 @@ TIP: TelegramX is by far the better client to use for these purposes as it suppo
 The python library gspread is used for managing io with Google Sheets. You will need to have a Google Cloud Platform account and enable Google Drive APIs. Afterwards you must generate server credentials with a json api key.
 
 Instructions are here: https://www.twilio.com/blog/2017/02/an-easy-way-to-read-and-write-to-a-google-spreadsheet-in-python.html
+
+
+## Known Bugs
+* Currently a channel must have already been joined in order to begin monitoring of keywords. It is likely you will need to run the `bot.py` twice, once to let it join channels and another time to monitor them. I’m aware of this glaring butg and will fix it in the next revision.
+
+
+## Todo
+* Create user interface dashboard for bot management
+	* Create new accounts
+	* Add / remove channels
+	* Add / remove keywords to monitor
+	* View notifications 
+	* Recieve web push notifications
+* Automatically poll the database to update the keywords to monitor in memory
+* Automate creation of phone numbers via Burner API and authcode process
 
 
 ## Getting in touch
