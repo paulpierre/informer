@@ -3,7 +3,7 @@
 ## About
 **Informer (TGInformer) is a bot library that allows you to masquerade as multiple REAL users on telegram** and spy on 500+ Telegram channels **per account**. Details are logged to a MySQL database, a private Google Sheet and your own private channel for analysis.
 
-This is a functioning proof-of-concept project with known bugs. I am not publically actively updating this as I may or may not be commercially developing this privately. Feel free to fork, share and drop me a line.
+This is a functioning proof-of-concept project with known bugs. Feel free to fork, share and drop me a line.
 
 
 ## Potential Business Applications
