@@ -1,5 +1,3 @@
-
-
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/informer-logo.gif)
 # Informer - Telegram Mass Surveillance
 ## About
@@ -48,7 +46,7 @@ This is a functioning proof-of-concept project with known bugs. I am not publica
 
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/4.png)
 
-* Uses REAL accounts avoiding bot detection, _THIS IS NOT A TELEGRAM BOT_ but a real automated account
+* Uses REAL accounts avoiding bot detection, **THIS IS NOT A TELEGRAM BOT** but a real automated account
 
 
 ## Scaling Telegram accounts
