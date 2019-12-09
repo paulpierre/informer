@@ -3,7 +3,9 @@
 ## About
 Informer (TGInformer) is a bot library that allows you to masquerade as multiple REAL users on telegram and log detailed information about specific keywords you set to the database or to your own private telegram channel. 
 
-This is a functioning proof-of-concept project with known bugs. Feel free to fork, share and drop me a line.
+This is a functioning proof-of-concept project with known bugs. I am not publically actively updating this as I may or may not be commercially developing this privately. Feel free to fork, share and drop me a line.
+
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/4.png)
 
 
 ## Potential Business Applications
@@ -44,7 +46,7 @@ This is a functioning proof-of-concept project with known bugs. Feel free to for
 
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/4.png)
 
-* Uses REAL accounts avoiding bot detection, **THIS IS NOT A TELEGRAM BOT** but a real automated account
+* Uses REAL accounts avoiding bot detection, **THIS IS NOT A TELEGRAM BOT** but a real automated user account. This is an important distinction because the official bot API is limited and bots are often restricted in public channels.
 
 
 ## Scaling Telegram accounts
@@ -54,7 +56,7 @@ Unfortunately services with APIs like Twilio are prohibited from receiving SMS f
 
 A whole evening was wasted on this endeavor until I remebered a great app I used in the past: Burner (https://www.burnerapp.com/)  — which coincidentally does have an API (https://developer.burnerapp.com/api-documentation/incoming-webhooks/).  Meaning you can dynamically generate numbers, instantiate a new account and authenticate it all via Telegram’s client SDK in Python (Telethon: https://docs.telethon.dev/en/latest/)
 
-The best part is Burner numbers are free for a week. Telegram accounts connected via client API need only login once and permanently persist sessions. I have not integrated with the Burner API, but the process is straight forward.
+The best part is Burner numbers are free for 14 days. Telegram accounts connected via client API need only login once and permanently persist sessions. I have not integrated with the Burner API, but the process is straight forward.
 
 
 ## Todo
@@ -69,13 +71,12 @@ The best part is Burner numbers are free for a week. Telegram accounts connected
 
 
 ## Known Bugs
-* Currently a channel must have already be joined in order to begin monitoring of keywords. It is likely you will need to run the `bot.py` twice, once to let it join channels and another time to monitor them. I’m aware of this glaring but and will fix it in the next revision and even sooner if there is interest
-
+* Currently a channel must have already been joined in order to begin monitoring of keywords. It is likely you will need to run the `bot.py` twice, once to let it join channels and another time to monitor them. I’m aware of this glaring butg and will fix it in the next revision.
 
 ## Requirements
 ### OS / Infrastructure
-* Linux / MacOS
-* Docker
+* Python 3+
+* Docker (optional)
 * Telegram (Desktop, Web or Mobile download: https://www.telegram.org/)
 
 ### Python packages
@@ -94,19 +95,21 @@ The best part is Burner numbers are free for a week. Telegram accounts connected
 
 ## Getting Started
 ### Run locally without Docker
-If you’re not interested in kicking the tires and want to light some fires instead, you can run Informer locally and not in a docker instance.
+If you’re not interested in kicking the tires and want to light some fires instead, you can run the Informer bot locally and not in a docker instance. A licky boom boom down.
 
 1. Create a virtual environment in the local directory
+
 `virtualenv venv`
 
 2. Install the depencies in requirements.txt
+
 `pip install -r requirements.txt`
 
-3. Use the instructions below to retrieve your Telegram user API ID and API hash and supply this information in build_database.py
+3. Use the instructions below to retrieve your Telegram user API ID and API hash and supply this information in `build_database.py`
 
 4. Create a MySQL database locally and supply the credentials in the bot.py. MySQL comes with MacOS. You can also install the latest version for your OS and follow the instructions here:
 
-https://dev.mysql.com/doc/mysql-getting-started/en/
+	https://dev.mysql.com/doc/mysql-getting-started/en/
 
 5. Run `python3 build_database.py` . This will create the models in `models.py` inside your new MySQL database and ensure it is unicode safe for those fun eye-bleeding emojis on TG.
 
@@ -120,7 +123,7 @@ It will also setup some default values for keywords to monitor and channels to j
 `python3 bot.py <your_api_user_id>` which will take your configuration and spin up an instance of the `TGInformer` class and begin surveillance.
 You will need to provide the API ID you generated from the instructions below as an argument so the bot knows which account to log into.
 
-NOTE: If this is your first time logging in, it will send you an authorization code via SMS or via the Telegram app. You will need to enter this to authenticate the bot and log into the Telegram servers. You will only need to do this once as a session file will be generated locally to persist all sessions. This entire process is handled by the Telethon Telegram client SDK.
+**NOTE:** If this is your first time logging in, it will send you an authorization code via SMS or via the Telegram app. You will need to enter this to authenticate the bot and log into the Telegram servers. You will only need to do this once as a session file will be generated locally to persist all sessions. This entire process is handled by the Telethon Telegram client SDK.
 
 ### Create a telegram account with Burner App
 
@@ -140,7 +143,9 @@ NOTE: If this is your first time logging in, it will send you an authorization c
 
 5. Log into Telegram
 
-6.  attempt to login with the app by running `python3 bot.py <api_user_id>`
+6.  attempt to login with the app by running
+
+`python3 bot.py <api_user_id>`
 
 7. Since you are logging in with Telethon it will ask you for your authcode in the terminal. This was  sent via Telegram message or SMS. Provide this and it will save your session credentials in the session file mentioned below. You will no longer need to authenticate so long as you have the session file saved.
 
@@ -165,26 +170,28 @@ channels too fast
 2. **Telethon Sessions**
 Telethon will create a session file. You can set the name of the session 
 file when you instantiate the Telethon client: 
+
 `TelegramClient(<session_file_name>, <api_user_id>, <api_user_hash>)`
 
 	This file happens to be a sqlite database which you can connect to. It 	
 	acts like a cache and stores historical data as well as your session 
 	authentication information so you will not have to re-authenticate with 
-	Telegram’s 2FA . Note ou will need to login for a first time and 
+	Telegram’s 2FA . Note that you will need to login for a first time and 
 	authenticate when you first use the API.
 
 
 ### Docker
 If you want to run the bot as a containerized instance on a server with AWS, GCP or Digital ocean you can.
 
-You will need to create an account with a container registry service, availble on most enterprise cloud providers but Docker Hub will do (https://hub.docker.com/signup)
+You will need to create an account with a container registry service, available on most enterprise cloud providers but Docker Hub will do (https://hub.docker.com/signup)
 
 1. Create a Docker repository, instructions here: https://docs.docker.com/docker-hub/repos/
 
 2. Build the Docker image. We’re running on a lean Alpine Python 3.7 image.
+
  `docker build -t <user_name>/<repo_name>/informer:latest .`
 
-NOTE: You will want an entry point to run bot.py and provide it a Telegram API user ID. There are a few ways to approach this:
+**NOTE:** You will want an entry point to run bot.py and provide it a Telegram API user ID. There are a few ways to approach this:
 
 * You can comment out and include the CMD instruction and provide the API user ID via environment variable:
 `CMD [“python”,”bot.py”,”${SHILLOMATIC_ACCOUNT_ID}”]`
@@ -194,6 +201,7 @@ inside your Cloud Provider’s console or export it in your shell
 environment with `export SHILLOMATIC_ACCOUNT_ID=“1234567”` 
 
 * Or you can set or over-ride the entry point in your cloud provider just make sure you provide the Telegram API user ID as an argument:
+
 `python3 bot.py 1234567`
 
 * Or you can run the bot inside the shell environment with Docker:
@@ -201,21 +209,27 @@ environment with `export SHILLOMATIC_ACCOUNT_ID=“1234567”`
 	1. SSH into your remote shell environment
 
 	2. Pull the Docker image from the remote repository:
+
 	`docker pull <user_name>/<repo_name>/informer:latest`
 
 	3. Get the Docker container ID with:
+
 	`docker container ls`
 
 	4. Run the Docker image and script in interactive mode:
+
 	`docker run -ti <container_id> python3 bot.py 1234567`
 	Where 1234567 is your Telegram API user ID.
 
 3. Push the Docker image to your remote repository:
+
 `docker push <user_name>/<repo_name>/informer:latest`
 
 4. Assuming some entry point was set either in the Docker file, your cloud provider container dashboard, or manually in the shell with `docker run` you can open Telegram and login with the same account as above.
 
 As the bot runs and joins channel, you will see your client update in real time and display the new channels you have joined.
+
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/4.png)
 
 TIP: TelegramX is by far the better client to use for these purposes as it supports multiple login. Download here:
 
@@ -224,11 +238,15 @@ TIP: TelegramX is by far the better client to use for these purposes as it suppo
 
 
 ## Google Sheets Integration
-Instructions here: https://www.twilio.com/blog/2017/02/an-easy-way-to-read-and-write-to-a-google-spreadsheet-in-python.html
+The python library gspread is used for managing io with Google Sheets. You will need to have a Google Cloud Platform account and enable Google Drive APIs. Afterwards you must generate server credentials with a json api key.
+
+Instructions are here: https://www.twilio.com/blog/2017/02/an-easy-way-to-read-and-write-to-a-google-spreadsheet-in-python.html
 
 
 ## Getting in touch
-Did you find this project interesting? It was made in two days as a proof of concept for a friend in the cryptocurrency space. If you find any interesting or lucrative applications, I’m always happy to collaborate. You can reach me at:
+Did you find this project interesting? Please star it if so.
+
+It was made in two days as a proof of concept for a friend in the cryptocurrency space. If you find any interesting or lucrative applications, I’m always happy to collaborate. You can reach me at:
 
 @paulpierre on Twitter or hi (at) paulpierre (dot) com 
 
