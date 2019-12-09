@@ -5,8 +5,6 @@
 
 This is a functioning proof-of-concept project with known bugs. I am not publically actively updating this as I may or may not be commercially developing this privately. Feel free to fork, share and drop me a line.
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/4.png)
-
 
 ## Potential Business Applications
 * Sock puppeteering to overthrow a despotic regime
