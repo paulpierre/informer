@@ -3,7 +3,7 @@
 ## About
 Informer (TGInformer) is a bot library that allows you to masquerade as multiple REAL users on telegram and log detailed information about specific keywords you set to the database or to your own private telegram channel. 
 
-This is a functioning proof-of-concept project with known bugs. I am not publically actively updating this as I may or may not be commercially developing this privately. Feel free to fork, share and drop me a line! 
+This is a functioning proof-of-concept project with known bugs. I am not publically actively updating this as I may or may not be commercially developing this privately. Feel free to fork, share and drop me a line.
 
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/4.png)
 
@@ -188,29 +188,29 @@ You will need to create an account with a container registry service, availble o
 
 NOTE: You will want an entry point to run bot.py and provide it a Telegram API user ID. There are a few ways to approach this:
 
-	* You can comment out and include the CMD instruction and provide the API user ID via environment variable:
-	`CMD [“python”,”bot.py”,”${SHILLOMATIC_ACCOUNT_ID}”]`
-	You will need to set the environment variable 
-	`SHILLOMATIC_ACCOUNT_ID`  to your Telegram accounts API user ID 
-	inside your Cloud Provider’s console or export it in your shell 
-	environment with `export SHILLOMATIC_ACCOUNT_ID=“1234567”` 
+* You can comment out and include the CMD instruction and provide the API user ID via environment variable:
+`CMD [“python”,”bot.py”,”${SHILLOMATIC_ACCOUNT_ID}”]`
+You will need to set the environment variable 
+`SHILLOMATIC_ACCOUNT_ID`  to your Telegram accounts API user ID 
+inside your Cloud Provider’s console or export it in your shell 
+environment with `export SHILLOMATIC_ACCOUNT_ID=“1234567”` 
 
-	* Or you can set or over-ride the entry point in your cloud provider just make sure you provide the Telegram API user ID as an argument:
-	`python3 bot.py 1234567`
+* Or you can set or over-ride the entry point in your cloud provider just make sure you provide the Telegram API user ID as an argument:
+`python3 bot.py 1234567`
 
-	* Or you can run the bot inside the shell environment with Docker:
+* Or you can run the bot inside the shell environment with Docker:
 
-		1. SSH into your remote shell environment
+	1. SSH into your remote shell environment
 
-		2. Pull the Docker image from the remote repository:
-		`docker pull <user_name>/<repo_name>/informer:latest`
+	2. Pull the Docker image from the remote repository:
+	`docker pull <user_name>/<repo_name>/informer:latest`
 
-		3. Get the Docker container ID with:
-		`docker container ls`
+	3. Get the Docker container ID with:
+	`docker container ls`
 
-		4. Run the Docker image and script in interactive mode:
-		`docker run -ti <container_id> python3 bot.py 1234567`
-		Where 1234567 is your Telegram API user ID.
+	4. Run the Docker image and script in interactive mode:
+	`docker run -ti <container_id> python3 bot.py 1234567`
+	Where 1234567 is your Telegram API user ID.
 
 3. Push the Docker image to your remote repository:
 `docker push <user_name>/<repo_name>/informer:latest`
@@ -221,8 +221,8 @@ As the bot runs and joins channel, you will see your client update in real time 
 
 TIP: TelegramX is by far the better client to use for these purposes as it supports multiple login. Download here:
 
-	* Android - https://play.google.com/store/apps/details?id=org.thunderdog.challegram&hl=en_US
-	* iOS - https://apps.apple.com/us/app/telegram-x/id898228810
+* Android - https://play.google.com/store/apps/details?id=org.thunderdog.challegram&hl=en_US
+* iOS - https://apps.apple.com/us/app/telegram-x/id898228810
 
 
 ## Google Sheets Integration
