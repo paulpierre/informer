@@ -2,14 +2,13 @@
 
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/informer-logo.gif)
 # Informer - Telegram Mass Surveillance
-----
-
 ## About
 Informer (TGInformer) is a bot library that allows you to masquerade as multiple REAL users on telegram and log detailed information about specific keywords you set to the database or to your own private telegram channel. 
 
 This is a functioning proof-of-concept project with known bugs. I am not publically actively updating this as I am commercially developing this privately. Feel free to fork, share and drop me a line.
 
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/4.png)
+
 
 ## Potential Business Applications
 * Sock puppeteering to overthrow a despotic regime
@@ -19,22 +18,38 @@ This is a functioning proof-of-concept project with known bugs. I am not publica
 * Getting in on price action early
 * Running analysis of a telegram channel
 
+
 ## Features
 * Write all notifications to private Google Sheet
+
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/9.png)
+
 * Supports regular expressions for keyword filtering
+
 * SQLAlchemy for agnostic data persistence
+
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/8.png)
+
 * Logging contextual message and channel data to a private channel and database
+
 * Stores meta information about sender of message, channel, number of participants in the channel
+
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/7.png)
+
 * Auto-joins channels from CSV list containing Telegram channel URLs
+
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/10.png)
+
 * Persists session of channels joined
+
 * Login once, bot stays logged in forever without needing 2FA re-authentication
+
 * Join up to 500 channels per account
+
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/4.png)
+
 * Uses REAL accounts avoiding bot detection, _THIS IS NOT A TELEGRAM BOT_ but a real automated account
+
 
 ## Scaling Telegram accounts
 Figuring out how to scale accounts was a bit of a nightmare as I needed an automated process. Telegram requires you use a real phone number that can recieve texts from a shortcode.
@@ -44,6 +59,7 @@ Unfortunately services with APIs like Twilio are prohibited from receiving SMS f
 A whole evening was wasted on this endeavor until I remebered a great app I used in the past: Burner (https://www.burnerapp.com/)  — which coincidentally does have an API (https://developer.burnerapp.com/api-documentation/incoming-webhooks/).  Meaning you can dynamically generate numbers, instantiate a new account and authenticate it all via Telegram’s client SDK in Python (Telethon: https://docs.telethon.dev/en/latest/)
 
 The best part is Burner numbers are free for a week. Telegram accounts connected via client API need only login once and permanently persist sessions. I have not integrated with the Burner API, but the process is straight forward.
+
 
 ## Todo
 * Create user interface dashboard for bot management
@@ -55,8 +71,10 @@ The best part is Burner numbers are free for a week. Telegram accounts connected
 * Automatically poll the database to update the keywords to monitor in memory
 * Automate creation of phone numbers via Burner API and authcode process
 
+
 ## Known Bugs
 * Currently a channel must have already be joined in order to begin monitoring of keywords. It is likely you will need to run the `bot.py` twice, once to let it join channels and another time to monitor them. I’m aware of this glaring but and will fix it in the next revision and even sooner if there is interest
+
 
 ## Requirements
 ### OS / Infrastructure
@@ -121,6 +139,7 @@ NOTE: If this is your first time logging in, it will send you an authorization c
  https://my.telegram.org/auth
 
 3. Validate with Burner. You will be sent an authcode via SMS, you will need to provide
+
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/1.png)
 
 5. Log into Telegram
@@ -207,8 +226,10 @@ TIP: TelegramX is by far the better client to use for these purposes as it suppo
 	* Android - https://play.google.com/store/apps/details?id=org.thunderdog.challegram&hl=en_US
 	* iOS - https://apps.apple.com/us/app/telegram-x/id898228810
 
+
 ## Google Sheets Integration
 Instructions here: https://www.twilio.com/blog/2017/02/an-easy-way-to-read-and-write-to-a-google-spreadsheet-in-python.html
+
 
 ## Getting in touch
 Did you find this project interesting? It was made in two days as a proof of concept for a friend in the cryptocurrency space. If you find any interesting or lucrative applications, I’m always happy to collaborate. You can reach me at:
@@ -216,6 +237,7 @@ Did you find this project interesting? It was made in two days as a proof of con
 @paulpierre on Twitter or hi (at) paulpierre (dot) com 
 
 Most of my interesting projects are private on github, but feel free to check them out: http://www.github.com/paulpierre or past work at http://www.paulpierre.com
+
 
 ## Open Source License
 ----
