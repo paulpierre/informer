@@ -236,7 +236,7 @@ Instructions are here: https://www.twilio.com/blog/2017/02/an-easy-way-to-read-a
 
 
 ## Known Bugs
-* Currently a channel must have already been joined in order to begin monitoring of keywords. It is likely you will need to run the `bot.py` twice, once to let it join channels and another time to monitor them. I’m aware of this glaring butg and will fix it in the next revision.
+* Currently a channel must have already been joined in order to begin monitoring of keywords. It is likely you will need to run the `bot.py` twice, once to let it join channels and another time to monitor them. I’m aware of this glaring bug and will fix it in the next revision.
 
 
 ## Todo
