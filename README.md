@@ -18,6 +18,10 @@ This is a functioning proof-of-concept project with known bugs. Feel free to for
 
 
 ## Features
+* Run all your bots in the cloud while you sleep. Support for Google App Engine Flexible Environment and Docker
+
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/14.png)
+
 * Write all notifications to private Google Sheet
 
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/9.png)
