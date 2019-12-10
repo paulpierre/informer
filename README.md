@@ -124,7 +124,7 @@ You will need to provide the API ID you generated from the instructions below as
 
 5. Log into Telegram
 
-6.  attempt to login with the app by running
+6.  Attempt to login with the app by running
 
 `python3 bot.py <api_user_id>`
 
@@ -138,7 +138,7 @@ Figuring out how to scale accounts was a bit of a nightmare as I needed an autom
 
 Unfortunately services with APIs like Twilio are prohibited from receiving SMS from shortcodes in the US, Canada and UK https://support.twilio.com/hc/en-us/articles/223181668-Can-Twilio-numbers-receive-SMS-from-a-short-code- for fraud purposes. This would’ve been ideal, bahumbug.
 
-A whole evening was wasted on this endeavor until I remebered a great app I used in the past: Burner (https://www.burnerapp.com/)  — which coincidentally does have an API (https://developer.burnerapp.com/api-documentation/incoming-webhooks/).  Meaning you can dynamically generate numbers, instantiate a new account and authenticate it all via Telegram’s client SDK in Python (Telethon: https://docs.telethon.dev/en/latest/)
+A whole evening was wasted on this endeavor until I remembered a great app I used in the past: Burner (https://www.burnerapp.com/)  — which coincidentally does have an API (https://developer.burnerapp.com/api-documentation/incoming-webhooks/).  Meaning you can dynamically generate numbers, instantiate a new account and authenticate it all via Telegram’s client SDK in Python (Telethon: https://docs.telethon.dev/en/latest/)
 
 The best part is Burner numbers are free for 14 days. Telegram accounts connected via client API need only login once and permanently persist sessions. I have not integrated with the Burner API, but the process is straight forward.
 
