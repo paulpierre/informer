@@ -182,18 +182,19 @@ def init_add_monitors():
     channel_count = 0
 
     for channel in channels:
-        account = accounts[account_index]
-        logging.info('{}: Adding monitoring to channel {} with account_id {} to the database'.format(sys._getframe().f_code.co_name, channel.channel_name, account.account_id))
-        session.add(Monitor(
-            channel_id=channel.id,
-            account_id=account.account_id,
-            monitor_tcreate=datetime.now(),
-            monitor_tmodified=datetime.now()
-        ))
-        channel_count += 1
-        if channel_count > 500:
-            account_index += 1
-            channel_count = 0
+        if account_index in accounts:
+            account = accounts[account_index]
+            logging.info('{}: Adding monitoring to channel {} with account_id {} to the database'.format(sys._getframe().f_code.co_name, channel.channel_name, account.account_id))
+            session.add(Monitor(
+                channel_id=channel.id,
+                account_id=account.account_id,
+                monitor_tcreate=datetime.now(),
+                monitor_tmodified=datetime.now()
+            ))
+            channel_count += 1
+            if channel_count > 500:
+                account_index += 1
+                channel_count = 0
     session.commit()
 
 
@@ -205,10 +206,10 @@ def initialize_db():
 
     if os.getenv('GAE_INSTANCE'):
         SERVER_MODE = 'prod'  # prod vs local
-        MYSQL_CONNECTOR_STRING = 'mysql+mysqlconnector://root:root@YOUR_OWN_IP_HERE:3320/{}'.format(DATABASE_NAME)
+        MYSQL_CONNECTOR_STRING = 'mysql+mysqlconnector://root:root@YOUR_OWN_IP_HERE:3306/'
     else:
         SERVER_MODE = 'local'
-        MYSQL_CONNECTOR_STRING = 'mysql+mysqlconnector://root:root@127.0.0.1:3320/{}'.format(DATABASE_NAME)
+        MYSQL_CONNECTOR_STRING = 'mysql+mysqlconnector://root:root@127.0.0.1:3306'
 
     engine = db.create_engine(MYSQL_CONNECTOR_STRING)#, echo=True)
     Session = sessionmaker(bind=engine)
