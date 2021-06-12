@@ -206,7 +206,7 @@ def initialize_db():
 
     if os.getenv('GAE_INSTANCE'):
         SERVER_MODE = 'prod'  # prod vs local
-        MYSQL_CONNECTOR_STRING = 'mysql+mysqlconnector://root:root@YOUR_OWN_IP_HERE:3306/'
+        MYSQL_CONNECTOR_STRING = 'mysql+mysqlconnector://root:root@YOUR_OWN_IP_HERE:3306'
     else:
         SERVER_MODE = 'local'
         MYSQL_CONNECTOR_STRING = 'mysql+mysqlconnector://root:root@127.0.0.1:3306'
