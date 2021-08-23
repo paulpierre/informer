@@ -7,6 +7,7 @@
 * Made Google Spreadsheets optional in setup
 * Secure ENV files for setup
 * Easier setup
+* Replaced docker-compose in lieu of App Engine bc AE sux
 
 ## About
 **Informer (TGInformer) is a bot library that allows you to masquerade as multiple REAL users on telegram** and spy on 500+ Telegram channels **per account**. Details are logged to a MySQL database, a private Google Sheet and your own private channel for analysis.
@@ -26,7 +27,7 @@ This is a functioning proof-of-concept project with known bugs. Feel free to for
 
 
 ## Features
-* Run all your bots in the cloud while you sleep. Support for Google App Engine Flexible Environment and Docker
+* Run all your bots in the cloud while you sleep. Support for Docker Compose
 
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/14.png)
 
