@@ -1,0 +1,64 @@
+version: '3.5'
+services:
+#    --------------------------------------------------
+#        ____      ____                              
+#       /  _/___  / __/___  _________ ___  ___  _____
+#       / // __ \/ /_/ __ \/ ___/ __ `__ \/ _ \/ ___/
+#     _/ // / / / __/ /_/ / /  / / / / / /  __/ /    
+#    /___/_/ /_/_/  \____/_/  /_/ /_/ /_/\___/_/ v1.1
+#    
+#    --------------------------------------------------
+#    by @paulpierre Updated 2021-08-16
+#    https://github.com/paulpierre/informer
+#   
+
+
+  # ================
+  # Database Service
+  # ================
+  db_informer:
+    env_file:
+      - informer.env
+    container_name: db_informer   
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+    - "3307:3306"
+
+
+# =========================
+# Informer Telegram Service
+# =========================
+  app_informer:
+    env_file:
+      - informer.env
+    
+    build: .
+    command: /bin/bash -c "sleep 15; python3 bot.py ${TELEGRAM_ACCOUNT_ID}"
+    container_name: app_informer
+    volumes:
+      - app/:/usr/local/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db_informer
+    links:
+      - db_informer
+
+  # ===============
+  # Logging service
+  # ===============
+  # available at http://localhost:9999
+  # NOTE: this is totally optional, feel free to comment out below if prod
+  app_dozzle:
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 9999:8080
+
+volumes:
+  db_data: {}
+  app: {}

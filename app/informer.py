@@ -1,27 +1,28 @@
-from models import Account, Channel, ChatUser, Keyword, Message, Monitor, Notification
-import sqlalchemy as db
-from datetime import datetime, timedelta
-from random import randrange
-import build_database
 import sys
 import os
-import logging
 import json
 import re
 import asyncio
+import gspread
+import logging
+import build_database
+import sqlalchemy as db
+from datetime import datetime, timedelta
+from random import randrange
 from telethon import utils
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError, InterfaceError, ProgrammingError
 from telethon.tl.functions.users import GetFullUserRequest
 from telethon import TelegramClient, events
 from telethon.tl.types import PeerUser, PeerChat, PeerChannel
-from telethon.errors.rpcerrorlist import FloodWaitError, ChannelPrivateError,UserAlreadyParticipantError
+from telethon.errors.rpcerrorlist import FloodWaitError, ChannelPrivateError, UserAlreadyParticipantError
 from telethon.tl.functions.channels import  JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
-import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from models import Account, Channel, ChatUser, Keyword, Message, Monitor, Notification
 
-"""
+
+banner = """
     --------------------------------------------------
         ____      ____                              
        /  _/___  / __/___  _________ ___  ___  _____
@@ -30,7 +31,7 @@ from oauth2client.service_account import ServiceAccountCredentials
     /___/_/ /_/_/  \____/_/  /_/ /_/ /_/\___/_/
     
     --------------------------------------------------
-    by @paulpierre 11-26-2019
+    by @paulpierre updated 2021-08-16 (2019-11-26)
     https://github.com/paulpierre/informer
 """
 
@@ -38,25 +39,20 @@ from oauth2client.service_account import ServiceAccountCredentials
 # Lets set the logging level
 logging.getLogger().setLevel(logging.INFO)
 
-
 class TGInformer:
 
     def __init__(self,
-                 account_id=None,
-                 db_prod_ip=None,
-                 db_prod_port=None,
-                 db_prod_name=None,
-                 db_prod_user=None,
-                 db_prod_password=None,
-                 db_local_ip=None,
-                 db_local_port=None,
-                 db_local_name=None,
-                 db_local_user=None,
-                 db_local_password=None,
-                 tg_notifications_channel_id=None,
-                 google_credentials_path=None,
-                 google_sheet_name=None,
-                 ):
+        db_database = os.environ['MYSQL_DATABASE'],
+        db_user = os.environ['MYSQL_USER'],
+        db_password = os.environ['MYSQL_PASSWORD'],
+        db_ip_address = os.environ['MYSQL_IP_ADDRESS'],
+        db_port = os.environ['MYSQL_PORT'],
+        tg_account_id = os.environ['TELEGRAM_ACCOUNT_ID'],
+        tg_notifications_channel_id = os.environ['TELEGRAM_NOTIFICATIONS_CHANNEL_ID'],
+        google_credentials_path = os.environ['GOOGLE_APPLICATION_CREDENTIALS'],
+        google_sheet_name = os.environ['GOOGLE_SHEET_NAME'],
+        tg_phone_number = os.environ['TELEGRAM_ACCOUNT_PHONE_NUMBER']
+    ):
 
         # ------------------
         # Instance variables
@@ -65,60 +61,64 @@ class TGInformer:
         self.channel_list = []
         self.channel_meta = {}
         self.bot_task = None
-        self.KEYWORD_REFRESH_WAIT = 15 * 60
+        self.KEYWORD_REFRESH_WAIT = 15 * 60 # Every 15 minutes
         self.MIN_CHANNEL_JOIN_WAIT = 30
         self.MAX_CHANNEL_JOIN_WAIT = 120
         self.bot_uptime = 0
+        self.client = None
+        self.loop = asyncio.get_event_loop()
+       
 
         # --------------
         # Display banner
         # --------------
-        print("""
-            ____      ____                              
-           /  _/___  / __/___  _________ ___  ___  _____
-           / // __ \/ /_/ __ \/ ___/ __ `__ \/ _ \/ ___/
-         _/ // / / / __/ /_/ / /  / / / / / /  __/ /    
-        /___/_/ /_/_/  \____/_/  /_/ /_/ /_/\___/_/     
-
-        by @paulpierre 11-26-2019
-        """)
+        print(banner)
 
         # ------------------------------------------------
         # Check if we're in app engine and set environment
         # ------------------------------------------------
 
-        if os.getenv('GAE_INSTANCE'):
-            self.SERVER_MODE = 'prod'  # prod vs local
-            self.MYSQL_CONNECTOR_STRING = 'mysql+mysqlconnector://{}:{}@{}:{}/{}'.format(db_prod_user, db_prod_password, db_prod_ip, db_prod_port, db_prod_name)
-        else:
-            self.SERVER_MODE = 'local'
-            self.MYSQL_CONNECTOR_STRING = 'mysql+mysqlconnector://{}:{}@{}:{}/{}'.format(db_local_user, db_local_password, db_local_ip, db_local_port, db_local_name)
-
-        logging.info('SERVER_MODE: {} GAE_ENV: {}'.format(self.SERVER_MODE, str(os.getenv('GAE_INSTANCE'))))
+        self.SERVER_MODE = os.environ['ENV']
+        self.MYSQL_CONNECTOR_STRING = f'mysql+mysqlconnector://{db_user}:{db_password}@{db_ip_address}:{db_port}/{db_database}?charset=utf8mb4&collation=utf8mb4_general_ci'
+        
+        logging.info(f'Starting Informer SERVER_MODE: {self.SERVER_MODE}\n')
 
         # -----------------------------------------
         # Set the channel we want to send alerts to
         # -----------------------------------------
         self.monitor_channel = tg_notifications_channel_id
 
-        if not account_id:
-            logging.error('Must specify account_id for bot instance')
-            return
+        if not tg_account_id:
+            raise Exception('Must specify "tg_account_id" in informer.env file for bot instance')
 
         # -----------------------
         # Initialize Google Sheet
         # -----------------------
-        scope = [
-            'https://www.googleapis.com/auth/spreadsheets',
-            'https://www.googleapis.com/auth/drive']
-        creds = ServiceAccountCredentials.from_json_keyfile_name(google_credentials_path, scope)
 
-        self.gsheet = gspread.authorize(creds)
-        self.sheet = self.gsheet.open(google_sheet_name).sheet1
+        logging.info(f'Attempting to access Google Sheet {google_sheet_name}.sheet1 ...\n')
+
+        # Lets check if the file exists
+
+        try:
+            if os.path.isfile(google_credentials_path):  
+
+                scope = [
+                    'https://www.googleapis.com/auth/spreadsheets',
+                    'https://www.googleapis.com/auth/drive']
+                creds = ServiceAccountCredentials.from_json_keyfile_name(google_credentials_path, scope)
+
+                self.gsheet = gspread.authorize(creds)
+                self.sheet = self.gsheet.open(google_sheet_name).sheet1
+            else:
+                self.gsheet = False
+        except gspread.exceptions.APIError:
+            self.gsheet = False
 
         # -------------------
         # Initialize database
         # -------------------
+
+        logging.info(f'Setting up MySQL connector with connector string: {self.MYSQL_CONNECTOR_STRING} ... \n')     
         self.engine = db.create_engine(self.MYSQL_CONNECTOR_STRING)  # , echo=True
         self.Session = sessionmaker(bind=self.engine)
         self.session = self.Session()
@@ -126,34 +126,23 @@ class TGInformer:
         # --------------------
         # Load account from DB
         # --------------------
+        logging.info(f'Attempting to load user session from database with account_id {tg_account_id} ...\n')
+
         self.tg_user = None
         try:
-            self.account = self.session.query(Account).filter_by(account_id=account_id).first()
+            self.account = self.session.query(Account).filter_by(account_id=tg_account_id).first()
         except ProgrammingError as e:
-            logging.error('Database is not set up, setting it up')
+            logging.error(f'Received error {e} \n Database is not set up, setting it up')
             build_database.initialize_db()
-            self.account = self.session.query(Account).filter_by(account_id=account_id).first()
+            self.account = self.session.query(Account).filter_by(account_id=tg_account_id).first()
 
         if not self.account:
-            logging.error('Invalid account_id {} for bot instance'.format(account_id))
-            sys.exit(0)
+            raise Exception(f'Invalid account_id {tg_account_id} for bot instance')
 
-        # ----------------------
-        # Telegram service login
-        # ----------------------
-        logging.info('Logging in with account # {}'.format(self.account.account_phone))
-        session_file = 'session/' + self.account.account_phone.replace('+', '')
-        self.client = TelegramClient(session_file, self.account.account_api_id, self.account.account_api_hash)
-
-        # -----------------------
-        # Authorize from terminal
-        # -----------------------
-        # TODO: automate authcode with the Burner API
-        self.client.connect()
-        if not self.client.is_user_authorized():
-            logging.info('Client is currently not logged in, please sign in!')
-            self.client.send_code_request(self.account.account_phone)
-            self.tg_user = self.client.sign_in(self.account.account_phone, input('Enter code: '))
+        # =======================
+        # Initiate bot async loop
+        # ========================
+        self.loop.run_until_complete(self.bot_interval())
 
     # =============
     # Get all users
@@ -162,7 +151,7 @@ class TGInformer:
         # TODO: this function is not complete
         channel = self.client.get_entity(PeerChat(channel_id))
         users = self.client.get_participants(channel)
-        print('total users: {}'.format(users.total))
+        print(f'total users: {users.total}')
         for user in users:
             if user.username is not None and not user.is_self:
                 print(utils.get_display_name(user), user.username, user.id, user.bot, user.verified, user.restricted, user.first_name, user.last_name, user.phone, user.is_self)
@@ -193,7 +182,7 @@ class TGInformer:
     # Get channel by channel URL
     # ==========================
     async def get_channel_info_by_url(self, url):
-        logging.info('{}: Getting channel info with url: {}'.format(sys._getframe().f_code.co_name, url))
+        logging.info(f'{sys._getframe().f_code.co_name}: Getting channel info with url: {url}')
         channel_hash = utils.parse_username(url)[0]
 
         # -----------------------------------------
@@ -202,10 +191,10 @@ class TGInformer:
         try:
             channel = await self.client.get_entity(channel_hash)
         except ValueError:
-            logging.info('{}: Not a valid telegram URL: {}'.format(sys._getframe().f_code.co_name, url))
+            logging.info(f'{sys._getframe().f_code.co_name}: Not a valid telegram URL: {url}')
             return False
         except FloodWaitError as e:
-            logging.info('{}: Got a flood wait error for: {}'.format(sys._getframe().f_code.co_name, url))
+            logging.info(f'{sys._getframe().f_code.co_name}: Got a flood wait error for: {url}')
             await asyncio.sleep(e.seconds * 2)
 
         return {
@@ -223,7 +212,7 @@ class TGInformer:
         u = await self.client.get_input_entity(PeerUser(user_id=user_id))
         user = await self.client(GetFullUserRequest(u))
 
-        logging.info('{}: User ID {} has data:\n {}\n\n'.format(sys._getframe().f_code.co_name, user_id, user))
+        logging.info(f'{sys._getframe().f_code.co_name}: User ID {user_id} has data:\n {user}\n\n')
 
         return {
             'username': user.user.username,
@@ -238,7 +227,8 @@ class TGInformer:
     # ==============================
     # Initialize keywords to monitor
     # ==============================
-    def init_keywords(self):
+    async def init_keywords(self):
+        self.keyword_list = []
         keywords = self.session.query(Keyword).filter_by(keyword_is_enabled=True).all()
 
         for keyword in keywords:
@@ -247,7 +237,7 @@ class TGInformer:
                 'name': keyword.keyword_description,
                 'regex': keyword.keyword_regex
             })
-            logging.info('{}: Monitoring keywords: {}'.format(sys._getframe().f_code.co_name, json.dumps(self.keyword_list, indent=4)))
+            logging.info(f'{sys._getframe().f_code.co_name}: Monitoring keywords: {json.dumps(self.keyword_list, indent=4)}')
 
     # ===========================
     # Initialize channels to join
@@ -278,9 +268,9 @@ class TGInformer:
 
                 # Lets add it to the current list of channels we're in
                 current_channels.append(channel_id)
-                logging.info('id: {} name: {}'.format(dialog.id, dialog.name))
+                logging.info(f'id: {dialog.id} name: {dialog.name}')
 
-        logging.info('{}: ### Current channels {}'.format(sys._getframe().f_code.co_name, json.dumps(current_channels)))
+        logging.info(f'{sys._getframe().f_code.co_name}: ### Current channels {json.dumps(current_channels, indent=4)}')
 
         # -----------------------------------
         # Get the list of channels to monitor
@@ -323,7 +313,7 @@ class TGInformer:
             # -------------------------------
             if channel['channel_id']:
                 self.channel_list.append(channel['channel_id'])
-                logging.info('Adding channel {} to monitoring w/ ID: {} hash: {}'.format(channel['channel_name'], channel['channel_id'], channel['channel_access_hash']))
+                logging.info(f"Adding channel {channel['channel_name']} to monitoring w/ ID: {channel['channel_id']} hash: {channel['channel_access_hash']}")
 
                 self.channel_meta[channel['channel_id']] = {
                     'channel_id': channel['channel_id'],
@@ -344,18 +334,21 @@ class TGInformer:
                     # If channel is invalid, ignore
                     # -----------------------------
                     if o is False:
-                        logging.error('Invalid channel URL: {}'.format(channel['channel_url']))
+                        logging.error(f"Invalid channel URL: {channel['channel_url']}")
                         continue
-                    logging.info('{}: ### Successfully identified {}'.format(sys._getframe().f_code.co_name, channel['channel_name']))
+
+                    logging.info(f"{sys._getframe().f_code.co_name}: ### Successfully identified {channel['channel_name']}")
 
                 # -------------------------
                 # If the channel is a group
                 # -------------------------
                 elif channel['channel_is_group']:
                     o = await self.get_channel_info_by_group_id(channel['channel_id'])
-                    logging.info('{}: ### Successfully identified {}'.format(sys._getframe().f_code.co_name, channel['channel_name']))
+
+                    logging.info(f"{sys._getframe().f_code.co_name}: ### Successfully identified {channel['channel_name']}")
+                
                 else:
-                    logging.info('{}: Unable to indentify channel {}'.format(sys._getframe().f_code.co_name, channel['channel_name']))
+                    logging.info(f"{sys._getframe().f_code.co_name}: Unable to indentify channel {channel['channel_name']}")
                     continue
 
                 channel_obj.channel_id = o['channel_id']
@@ -379,20 +372,20 @@ class TGInformer:
             # -------------------------------
             channel_is_private = True if (channel['channel_is_private'] or '/joinchat/' in channel['channel_url']) else False
             if channel_is_private:
-                logging.info('channel_is_private: {}'.format(channel_is_private))
+                logging.info(f'channel_is_private: {channel_is_private}')
 
             # ------------------------------------------
             # Join if public channel and we're not in it
             # ------------------------------------------
             if channel['channel_is_group'] is False and channel_is_private is False and channel['channel_id'] not in current_channels:
-                logging.info('{}: Joining channel: {} => {}'.format(sys._getframe().f_code.co_name, channel['channel_id'], channel['channel_name']))
+                logging.info(f"{sys._getframe().f_code.co_name}: Joining channel: {channel['channel_id']} => {channel['channel_name']}")
                 try:
                     await self.client(JoinChannelRequest(channel=await self.client.get_entity(channel['channel_url'])))
                     sec = randrange(self.MIN_CHANNEL_JOIN_WAIT, self.MAX_CHANNEL_JOIN_WAIT)
-                    logging.info('sleeping for {} seconds'.format(sec))
+                    logging.info(f'sleeping for {sec} seconds')
                     await asyncio.sleep(sec)
                 except FloodWaitError as e:
-                    logging.info('Received FloodWaitError, waiting for {} seconds..'.format(e.seconds))
+                    logging.info(f'Received FloodWaitError, waiting for {e.seconds} seconds..')
                     # Lets wait twice as long as the API tells us for posterity
                     await asyncio.sleep(e.seconds * 2)
 
@@ -405,7 +398,7 @@ class TGInformer:
             # ------------------------------------------
             elif channel_is_private and channel['channel_id'] not in current_channels:
                 channel_obj.channel_is_private = True
-                logging.info('{}: Joining private channel: {} => {}'.format(sys._getframe().f_code.co_name, channel['channel_id'], channel['channel_name']))
+                logging.info(f"{sys._getframe().f_code.co_name}: Joining private channel: {channel['channel_id']} => {channel['channel_name']}")
 
                 # -------------------------------------
                 # Join private channel with secret hash
@@ -419,10 +412,10 @@ class TGInformer:
                     # Counter FloodWaitError
                     # ----------------------
                     sec = randrange(self.MIN_CHANNEL_JOIN_WAIT, self.MAX_CHANNEL_JOIN_WAIT)
-                    logging.info('sleeping for {} seconds'.format(sec))
+                    logging.info(f'sleeping for {sec} seconds')
                     await asyncio.sleep(sec)
                 except FloodWaitError as e:
-                    logging.info('Received FloodWaitError, waiting for {} seconds..'.format(e.seconds))
+                    logging.info(f'Received FloodWaitError, waiting for {e.seconds} seconds..')
                     await asyncio.sleep(e.seconds * 2)
                 except ChannelPrivateError as e:
                     logging.info('Channel is private or we were banned bc we didnt respond to bot')
@@ -443,8 +436,8 @@ class TGInformer:
                 pass
             self.session.close()
 
-        logging.info('{}: Monitoring channels: {}'.format(sys._getframe().f_code.co_name, json.dumps(self.channel_list, indent=4)))
-        logging.info('Channel METADATA: {}'.format(self.channel_meta))
+        logging.info(f"{sys._getframe().f_code.co_name}: Monitoring channels: {json.dumps(self.channel_list, indent=4)}")
+        logging.info(f'Channel METADATA: {self.channel_meta}')
 
 
     # ===========================
@@ -475,10 +468,16 @@ class TGInformer:
                 # If it matches the regex then voila!
                 if re.search(keyword['regex'], message, re.IGNORECASE):
                     logging.info(
-                        'Filtering: {}\n\nEvent raw text: {} \n\n Data: {}'.format(channel_id, event.raw_text, event))
+                        f'Filtering: {channel_id}\n\nEvent raw text: {event.raw_text} \n\n Data: {event}')
 
                     # Lets send the notification with all the pertinent information in the params
-                    await self.send_notification(message_obj=event.message, event=event, sender_id=event.sender_id, channel_id=channel_id, keyword=keyword['name'], keyword_id=keyword['id'])
+                    await self.send_notification(
+                        message_obj=event.message,
+                        event=event, sender_id=event.sender_id,
+                        channel_id=channel_id,
+                        keyword=keyword['name'],
+                        keyword_id=keyword['id']
+                    )
 
     # ====================
     # Handle notifications
@@ -521,8 +520,8 @@ class TGInformer:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Set the message for the notification we're about to send in our monitor channel
-        message = '⚠️ "{}" mentioned by {} in => "{}" url: {}\n\n Message:\n"{}\ntimestamp: {}'.format(keyword, sender_username, self.channel_meta[channel_id]['channel_title'], self.channel_meta[channel_id]['channel_url'], message_text,timestamp)
-        logging.info('{} Sending notification {}'.format(sys._getframe().f_code.co_name, message))
+        message = f'⚠️ "{keyword}" mentioned by {sender_username} in => "{self.channel_meta[channel_id]["channel_title"]}" url: {self.channel_meta[channel_id]["channel_url"]}\n\n Message:\n"{message_text}\ntimestamp: {timestamp}'
+        logging.info(f'{sys._getframe().f_code.co_name} Sending notification {message}')
 
         # ----------------
         # Send the message
@@ -532,25 +531,26 @@ class TGInformer:
         # -------------------------
         # Write to the Google Sheet
         # -------------------------
-        self.sheet.append_row([
-            sender_id,
-            sender_username,
-            channel_id,
-            self.channel_meta[channel_id]['channel_title'],
-            self.channel_meta[channel_id]['channel_url'],
-            keyword,
-            message_text,
-            is_mention,
-            is_scheduled,
-            is_fwd,
-            is_reply,
-            is_bot,
-            is_channel,
-            is_group,
-            is_private,
-            channel_size,
-            timestamp
-        ])
+        if self.gsheet is True:
+            self.sheet.append_row([
+                sender_id,
+                sender_username,
+                channel_id,
+                self.channel_meta[channel_id]['channel_title'],
+                self.channel_meta[channel_id]['channel_url'],
+                keyword,
+                message_text,
+                is_mention,
+                is_scheduled,
+                is_fwd,
+                is_reply,
+                is_bot,
+                is_channel,
+                is_group,
+                is_private,
+                channel_size,
+                timestamp
+            ])
 
         # --------------
         # Add user to DB
@@ -625,31 +625,42 @@ class TGInformer:
         logging.info('### updating keyword_list')
         pass
 
-    # ===========================
-    # Loop we run while we listen
-    # ===========================
-    async def bot_interval(self):
-        self.init_keywords()
-        await self.init_monitor_channels()
-        while True:
-            logging.info('### Running bot interval')
-            await self.update_keyword_list()
-            await asyncio.sleep(self.KEYWORD_REFRESH_WAIT)
-
     def stop_bot_interval(self):
         self.bot_task.cancel()
 
-    # ===========================
-    # Initialize connection to TG
-    # ===========================
-    def init(self):
-        loop = asyncio.get_event_loop()
-        self.bot_task = loop.create_task(self.bot_interval())
+   
+    # ==============
+    # Main coroutine
+    # ==============           
+    async def bot_interval(self): 
 
-        with self.client:
-            self.client.run_until_disconnected()
-            try:
-                loop.run_until_complete(self.bot_task)
-            except asyncio.CancelledError:
-                logging.info('### Async cancelled')
-                pass
+        # ----------------------
+        # Telegram service login
+        # ----------------------
+        logging.info(f'Logging in with account # {self.account.account_phone} ... \n')
+        session_file = 'session/' + self.account.account_phone.replace('+', '')
+        self.client = TelegramClient(session_file, self.account.account_api_id, self.account.account_api_hash)
+    
+        # -----------------------
+        # Authorize from terminal
+        # -----------------------
+        # TODO: automate authcode with the Burner API
+        await self.client.start(phone=f'{self.account.account_phone}')
+        
+        if not await self.client.is_user_authorized():
+            logging.info(f'Client is currently not logged in, please sign in! Sending request code to {self.account.account_phone}, please confirm on your mobile device')
+            await self.client.send_code_request(self.account.account_phone)
+            self.tg_user = await self.client.sign_in(self.account.account_phone, input('Enter code: '))
+        
+        self.tg_user = await self.client.get_me()
+      
+        await self.init_keywords()
+        await self.init_monitor_channels()
+        count = 0
+        while True:
+            count +=1
+            logging.info('### {count} Running bot interval')
+            await self.init_keywords()
+            await asyncio.sleep(self.KEYWORD_REFRESH_WAIT)
+
+    

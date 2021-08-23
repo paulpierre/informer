@@ -1,11 +1,19 @@
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/informer-logo.gif)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/informer-logo.gif)
 # Informer - Telegram Mass Surveillance
+
+## Update 08-23-2021
+* Updated to latest Telethon 1.23.0
+* Fixed database issues by migrating to docker-compose
+* Made Google Spreadsheets optional in setup
+* Secure ENV files for setup
+* Easier setup
+
 ## About
 **Informer (TGInformer) is a bot library that allows you to masquerade as multiple REAL users on telegram** and spy on 500+ Telegram channels **per account**. Details are logged to a MySQL database, a private Google Sheet and your own private channel for analysis.
 
 This is a functioning proof-of-concept project with known bugs. Feel free to fork, share and drop me a line.
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/13.png)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/13.png)
 
 
 ## Potential Business Applications
@@ -20,27 +28,27 @@ This is a functioning proof-of-concept project with known bugs. Feel free to for
 ## Features
 * Run all your bots in the cloud while you sleep. Support for Google App Engine Flexible Environment and Docker
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/14.png)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/14.png)
 
 * Write all notifications to private Google Sheet
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/9.png)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/9.png)
 
 * Supports regular expressions for keyword filtering
 
 * SQLAlchemy for agnostic data persistence
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/8.png)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/8.png)
 
 * Logging contextual message and channel data to a private channel and database
 
 * Stores meta information about sender of message, channel, number of participants in the channel
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/7.png)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/7.png)
 
 * Auto-joins channels from CSV list containing Telegram channel URLs
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/10.png)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/10.png)
 
 * Persists session of channels joined
 
@@ -48,7 +56,7 @@ This is a functioning proof-of-concept project with known bugs. Feel free to for
 
 * Join up to 500 channels per account
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/4.png)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/4.png)
 
 * Uses REAL accounts avoiding bot detection, **THIS IS NOT A TELEGRAM BOT** but a real automated user account. This is an important distinction because the official bot API is limited and bots are often restricted in public channels.
 
@@ -61,76 +69,157 @@ This is a functioning proof-of-concept project with known bugs. Feel free to for
 * Burner app
 
 ### Python packages
-* Jinja2 (2.10.3)
 * SQLAlchemy (1.3.11)
-* Werkzeug (0.16.0)
-* pytz (2019.3)
 * sqlalchemy-migrate (0.13.0)
-* requests (2.7.0)
-* Flask (1.1.1)
 * Telethon (1.10.8)
 * mysql-connector-python (8.0.18)
 * gspread (3.1.0)
 * oauth2client (4.1.3)
 
+## Quick Start
 
-## Getting Started
-### Run locally without Docker
-If you’re not interested in kicking the tires and want to light some fires instead, you can run the Informer bot locally and not in a docker instance. A licky boom boom down.
+### Setup your ENV vars
+Edit the file informer.env which contains all the required environmental variables for informer
 
-1. Create a virtual environment in the local directory
+You can retrieve the necessary Telegram-related information here:
 
-`virtualenv venv`
+### Setup Your Telegram App
 
-2. Install the depencies in requirements.txt
+1. Head over to `http://my.telegram.com/auth` to authenticate your account by providing a phone number and the confirmation code sent to your phone number (or Telegram)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/1-2.png)
 
-`pip install -r requirements.txt`
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/1-5.png)
 
-3. Use the instructions below to retrieve your Telegram user API ID and API hash and supply this information in `build_database.py`
 
-4. Create a MySQL database locally and supply the credentials in the bot.py. MySQL comes with MacOS. You can also install the latest version for your OS and follow the instructions here:
+2. Once you are authenticated, click on "API Development Tools"
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/1-3.png)
 
-	https://dev.mysql.com/doc/mysql-getting-started/en/
+3. Go ahead and create a New Application by filling out the form shown below
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/1-4.png)
 
-5. Run `python3 build_database.py` . This will create the models in `models.py` inside your new MySQL database and ensure it is unicode safe for those fun eye-bleeding emojis on TG.
+4. You should now have the necessary parameter values for the `informer.env` file fields `TELEGRAM_API_HASH` and `TELEGRAM_API_APP_ID`
 
-It will also setup some default values for keywords to monitor and channels to join supplied in channels.csv.
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/1-6.png)
 
-6. Create a group or channel on Telegram and retrieve its channel ID. This will be the channel where your snitching bot will drop all its notifications of keywords mentioned in other channels. Provide this value in `tg_notifications_channel_id=<your_channel_id>` inside `bot.py`
+5. Go ahead and replace the values, including `TELEGRAM_ACCOUNT_PHONE_NUMBER` and move on to the next section
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/2.png)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/1-7.png)
 
-7. If all is well we can go ahead and fire up Informer by running
-`python3 bot.py <your_api_user_id>` which will take your configuration and spin up an instance of the `TGInformer` class and begin surveillance.
-You will need to provide the API ID you generated from the instructions below as an argument so the bot knows which account to log into.
+### Getting your Telegram ID
 
-**NOTE:** If this is your first time logging in, it will send you an authorization code via SMS or via the Telegram app. You will need to enter this to authenticate the bot and log into the Telegram servers. You will only need to do this once as a session file will be generated locally to persist all sessions. This entire process is handled by the Telethon Telegram client SDK.
+So far we have what we need for Telethon and Informer to access the Telegram APIs, next we need to acquire the indentifiers for your bot's account.
+
+1. Open Telegram and search for the user `userinfobot`.
+
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/2-1.png)
+
+2. You will see multiple, make sure you select the correctly spelled account.
+
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/2-2.png)
+
+3. Click on the user and you should see a dialog option at the bottom that says "Start". Click on this.
+
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/2-3.png)
+
+4. The bot has a single purpose, to reflect back to you your current Telegram account's information.
+
+You should receive your Telegram username and your Telegram account ID. This is important
+
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/1-8.png)
+
+5. Go ahead and edit the `informer.env` file and fill in the values for `TELEGRAM_ACCOUNT_ID` which
+should be your Telegram account ID from the previous step and `TELEGRAM_ACCOUNT_USER_NAME`.
+
+You can optionally fill in `TELEGRAM_NOTIFICATIONS_CHANNEL_ID` with your user name or a channel ID.
+
+6. Make sure you have `TELEGRAM_ACCOUNT_PHONE_NUMBER` filled out as this is key to generating the session. For creating multiple accounts, please check out the Burner App below.
+
+### Initialize and authenticate session
+
+Make sure you are running python 3 and simply run `./quick_start.sh` in the directory.
+
+You must run this first so that you can authenticate with Telegram on the first run and generate a local session file
+
+You can later copy the files for the different accounts in app/session and mount them via Docker should you choose to do so.
+
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/15.png)
+
+You will be prompted to enter in the authentication code you received either via Telegram if you have logged in before, or via SMS
+
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/1-5.png)
+
+Hit enter and your session should be generated in the folder `app/session` with the file name as the international phone number you provided with a `.session` extension.
+
+Continue to the next section where we use Docker Compose to setup a database.
+
+
+### Setup a Notification Channel
+
+This step is optional, but if you would like to create a private group channel and would like to acquire the group ID do the following:
+
+* Create a group (or channel) and set it as private or public
+* Be sure to get the Telegram URL
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/3-1.png)
+
+Set the URL in the `informer.env` file under the parameter `TELEGRAM_NOTIFICATIONS_CHANNEL_URL`
+
+To get the channel ID simply run `python3 bot.py <TELEGRAM_ACCOUNT_ID>` in the `app` directory where `<TELEGRAM_ACCOUNT_ID>` is the account ID you previously generated.
+
+When the script loads, it will display all the channels you are in, simply copy this value and put it in the `TELEGRAM_NOTIFICATIONS_CHANNEL_ID` parameter of the `informer.env` file and kill the script. You're now ready to run Informer.
+
+
+### Running Docker Compose
+After running `quick_start.sh` you can run docker compose by:
+
+* running `./start.sh` to build the Docker containers which include the MySQL database
+
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/16.png)
+
+
+* Run `./stop.sh` to stop the containers
+
+* Run `./clean.sh` to remove an dangling containers and volumes. ** NOTE ** this will RESET the database and you will lose all your data.
+
+A few things to note:
+
+Before you were required to run your own MySQL instance and this created some issues with connection string compatability and versioning. In this update, it is just created for you and persisted on disk.
+
+Additionally Dozzle is provided so that you may view logs in your browser, simply go to http://localhost:9999 and click on the `app_informer` container.
+
 
 ### Create a telegram account with Burner App
+
+If you do not want to use your own phone number and want to run the Informer bot with some degree of anonymity you can use the Burner App available on iOS and Android.
 
 1. Install the app Burner
 
 	* Android - https://play.google.com/store/apps/details?id=org.thunderdog.challegram&hl=en_US
 	* iOS - https://apps.apple.com/us/app/telegram-x/id898228810
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/3.png)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/3.png)
 
-2. You first will need to create Telegram API credentials by providing a phone number here:
+2. Follow the same steps as above by providing the new phone number here:
  https://my.telegram.org/auth
 
 3. Validate with Burner. You will be sent an authcode via SMS, you will need to provide
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/1.png)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/1.png)
 
 5. Log into Telegram
 
 6.  Attempt to login with the app by running
 
-`python3 bot.py <api_user_id>`
+`python3 bot.py <api_user_id>` in the `app` directory.
 
-7. Since you are logging in with Telethon it will ask you for your authcode in the terminal. This was  sent via Telegram message or SMS. Provide this and it will save your session credentials in the session file mentioned below. You will no longer need to authenticate so long as you have the session file saved.
+7. Since you are logging in with Telethon it will ask you for your authcode in the terminal like earlier.
 
-Sessions are saved in the `session/` folder as `<telegram_phone_number>.session`
+This was  sent via Telegram message or SMS.
+
+Provide this and it will save your session credentials in the session file mentioned below. You will no longer need to authenticate so long as you have the session file saved.
+
+Sessions are saved in the `app/session/` folder as `<telegram_phone_number>.session`
+
+Rinse and repeat until you have all the necessary session files and simply mount them in Docker.
 
 
 ## Scaling Telegram accounts
@@ -171,57 +260,11 @@ file when you instantiate the Telethon client:
 	Telegram’s 2FA . Note that you will need to login for a first time and 
 	authenticate when you first use the API.
 
-
-### Docker
-If you want to run the bot as a containerized instance on a server with AWS, GCP or Digital ocean you can.
-
-You will need to create an account with a container registry service, available on most enterprise cloud providers but Docker Hub will do (https://hub.docker.com/signup)
-
-1. Create a Docker repository, instructions here: https://docs.docker.com/docker-hub/repos/
-
-2. Build the Docker image. We’re running on a lean Alpine Python 3.7 image.
-
- `docker build -t <user_name>/<repo_name>/informer:latest .`
-
-**NOTE:** You will want an entry point to run bot.py and provide it a Telegram API user ID. There are a few ways to approach this:
-
-* You can comment out and include the CMD instruction and provide the API user ID via environment variable:
-`CMD [“python”,”bot.py”,”${SHILLOMATIC_ACCOUNT_ID}”]`
-You will need to set the environment variable 
-`SHILLOMATIC_ACCOUNT_ID`  to your Telegram accounts API user ID 
-inside your Cloud Provider’s console or export it in your shell 
-environment with `export SHILLOMATIC_ACCOUNT_ID=“1234567”` 
-
-* Or you can set or over-ride the entry point in your cloud provider just make sure you provide the Telegram API user ID as an argument:
-
-`python3 bot.py 1234567`
-
-* Or you can run the bot inside the shell environment with Docker:
-
-	1. SSH into your remote shell environment
-
-	2. Pull the Docker image from the remote repository:
-
-	`docker pull <user_name>/<repo_name>/informer:latest`
-
-	3. Get the Docker container ID with:
-
-	`docker container ls`
-
-	4. Run the Docker image and script in interactive mode:
-
-	`docker run -ti <container_id> python3 bot.py 1234567`
-	Where 1234567 is your Telegram API user ID.
-
-3. Push the Docker image to your remote repository:
-
-`docker push <user_name>/<repo_name>/informer:latest`
-
-4. Assuming some entry point was set either in the Docker file, your cloud provider container dashboard, or manually in the shell with `docker run` you can open Telegram and login with the same account as above.
+## Managing Multiple Bot Accounts
 
 As the bot runs and joins channel, you will see your client update in real time and display the new channels you have joined.
 
-![image](https://raw.githubusercontent.com/paulpierre/informer/master/screenshots/4.png)
+![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/4.png)
 
 TIP: TelegramX is by far the better client to use for these purposes as it supports multiple login. Download here:
 
@@ -233,6 +276,8 @@ TIP: TelegramX is by far the better client to use for these purposes as it suppo
 The python library gspread is used for managing io with Google Sheets. You will need to have a Google Cloud Platform account and enable Google Drive APIs. Afterwards you must generate server credentials with a json api key.
 
 Instructions are here: https://www.twilio.com/blog/2017/02/an-easy-way-to-read-and-write-to-a-google-spreadsheet-in-python.html
+
+This is optional.
 
 
 ## Known Bugs
