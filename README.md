@@ -10,6 +10,10 @@
 * Replaced docker-compose in lieu of App Engine bc AE sux
 
 ## About
+
+[![kandi X-Ray](https://kandi.openweaver.com/badges/xray.svg)](https://kandi.openweaver.com/python/paulpierre/informer)
+[![kandi Featured](https://kandi.openweaver.com/badges/featured.svg)](https://kandi.openweaver.com/collections/python/python-telegram-bot)
+
 **Informer (TGInformer) is a bot library that allows you to masquerade as multiple REAL users on telegram** and spy on 500+ Telegram channels **per account**. Details are logged to a MySQL database, a private Google Sheet and your own private channel for analysis.
 
 This is a functioning proof-of-concept project with known bugs. Feel free to fork, share and drop me a line.
