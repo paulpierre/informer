@@ -86,7 +86,7 @@ You can retrieve the necessary Telegram-related information here:
 
 ### Setup Your Telegram App
 
-1. Head over to `http://my.telegram.com/auth` to authenticate your account by providing a phone number and the confirmation code sent to your phone number (or Telegram)
+1. Head over to `https://my.telegram.org/auth` to authenticate your account by providing a phone number and the confirmation code sent to your phone number (or Telegram)
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/1-2.png)
 
 ![image](https://raw.githubusercontent.com/paulpierre/informer/master/github/screenshots/1-5.png)
